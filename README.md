@@ -113,3 +113,9 @@ build-windows.bat
 Результат: `dist\TG-Broadcaster.exe`.
 
 Windows-сборка использует браузерный launcher (без `pywebview/pythonnet`), поэтому сборка стабильнее.
+Запуск: двойной клик по `dist\TG-Broadcaster\TG-Broadcaster.exe`.
+
+Если не стартует:
+
+- проверь `%APPDATA%\TG Broadcaster\crash.log`
+- проверь `%APPDATA%\TG Broadcaster\launcher.log`

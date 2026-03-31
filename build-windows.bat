@@ -20,7 +20,7 @@ poetry run pyinstaller ^
   --noconfirm ^
   --clean ^
   --name TG-Broadcaster ^
-  --console ^
+  --windowed ^
   --onedir ^
   --paths src ^
   --add-data "src/tg_spam/web;tg_spam/web" ^
@@ -31,6 +31,6 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo [OK] Build completed. Check dist\TG-Broadcaster.exe
+echo [OK] Build completed. Run dist\TG-Broadcaster\TG-Broadcaster.exe
 pause
 endlocal

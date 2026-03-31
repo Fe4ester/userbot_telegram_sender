@@ -1,19 +1,23 @@
 from __future__ import annotations
 
 import argparse
+import ctypes
+import multiprocessing
 import socket
+import traceback
 import threading
 import time
 import webbrowser
 from datetime import UTC, datetime
-from pathlib import Path
 
 import uvicorn
 
 from tg_spam.paths import APP_DIR
+from tg_spam.ui_app import app as fastapi_app
 
 
 def main() -> None:
+    multiprocessing.freeze_support()
     parser = argparse.ArgumentParser(description="Run tg-spam UI in browser")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8787)
@@ -26,14 +30,20 @@ def main() -> None:
         if not args.no_open:
             threading.Thread(target=_open_browser_delayed, args=(base_url,), daemon=True).start()
 
-        uvicorn.run(
-            "tg_spam.ui_app:app",
+        _write_launcher_log(f"starting server on {base_url}")
+        config = uvicorn.Config(
+            app=fastapi_app,
             host=args.host,
             port=port,
             reload=False,
+            log_level="info",
+            access_log=False,
         )
+        server = uvicorn.Server(config)
+        server.run()
     except Exception as exc:  # noqa: BLE001
         _write_crash_log(exc)
+        _show_error_message(exc)
         raise
 
 
@@ -57,3 +67,25 @@ def _write_crash_log(exc: Exception) -> None:
     timestamp = datetime.now(tz=UTC).isoformat()
     with crash_path.open("a", encoding="utf-8") as fh:
         fh.write(f"{timestamp} | {exc.__class__.__name__}: {exc}\n")
+        fh.write(traceback.format_exc())
+        fh.write("\n")
+
+
+def _write_launcher_log(message: str) -> None:
+    APP_DIR.mkdir(parents=True, exist_ok=True)
+    path = APP_DIR / "launcher.log"
+    timestamp = datetime.now(tz=UTC).isoformat()
+    with path.open("a", encoding="utf-8") as fh:
+        fh.write(f"{timestamp} | {message}\n")
+
+
+def _show_error_message(exc: Exception) -> None:
+    try:
+        text = (
+            "TG-Broadcaster crashed at startup.\n\n"
+            f"{exc.__class__.__name__}: {exc}\n\n"
+            f"Check log:\n{APP_DIR / 'crash.log'}"
+        )
+        ctypes.windll.user32.MessageBoxW(0, text, "TG-Broadcaster error", 0x10)
+    except Exception:
+        pass
