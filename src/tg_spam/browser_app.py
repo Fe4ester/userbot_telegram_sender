@@ -5,6 +5,7 @@ import ctypes
 import multiprocessing
 import os
 import socket
+import subprocess
 import sys
 import traceback
 import threading
@@ -32,10 +33,6 @@ def main() -> None:
 
         port = _pick_available_port(args.host, args.port, tries=40)
         base_url = f"http://{args.host}:{port}"
-        if not args.no_open:
-            threading.Thread(target=_open_browser_delayed, args=(base_url,), daemon=True).start()
-
-        _write_launcher_log(app_dir, f"starting server on {base_url}")
         config = uvicorn.Config(
             app=fastapi_app,
             host=args.host,
@@ -45,6 +42,13 @@ def main() -> None:
             access_log=False,
         )
         server = uvicorn.Server(config)
+        if not args.no_open:
+            threading.Thread(
+                target=_open_client_window_delayed,
+                args=(base_url, server, app_dir),
+                daemon=True,
+            ).start()
+        _write_launcher_log(app_dir, f"starting server on {base_url}")
         server.run()
     except Exception as exc:  # noqa: BLE001
         _write_crash_log(app_dir, exc)
@@ -52,9 +56,45 @@ def main() -> None:
         sys.exit(1)
 
 
-def _open_browser_delayed(url: str) -> None:
+def _open_client_window_delayed(url: str, server: object, app_dir: Path) -> None:
     time.sleep(1.0)
+    app_process = _start_app_window(url, app_dir)
+    if app_process is not None:
+        app_process.wait()
+        # Uvicorn Server has this runtime flag; use guarded setattr for typing/compatibility.
+        setattr(server, "should_exit", True)
+        _write_launcher_log(app_dir, "app window closed; stopping local server")
+
+
+def _start_app_window(url: str, app_dir: Path) -> subprocess.Popen[str] | None:
+    browser_exe = _detect_app_browser()
+    if browser_exe:
+        cmd = [browser_exe, f"--app={url}", "--new-window"]
+        _write_launcher_log(app_dir, f"opening app window: {browser_exe}")
+        try:
+            return subprocess.Popen(cmd)
+        except Exception as exc:  # noqa: BLE001
+            _write_launcher_log(app_dir, f"app-window launch failed: {exc}; fallback browser")
     webbrowser.open(url)
+    _write_launcher_log(app_dir, "fallback open in default browser")
+    return None
+
+
+def _detect_app_browser() -> str | None:
+    if os.name != "nt":
+        return None
+    candidates = [
+        os.path.join(os.getenv("ProgramFiles(x86)", ""), "Microsoft", "Edge", "Application", "msedge.exe"),
+        os.path.join(os.getenv("ProgramFiles", ""), "Microsoft", "Edge", "Application", "msedge.exe"),
+        os.path.join(os.getenv("LOCALAPPDATA", ""), "Microsoft", "Edge", "Application", "msedge.exe"),
+        os.path.join(os.getenv("ProgramFiles", ""), "Google", "Chrome", "Application", "chrome.exe"),
+        os.path.join(os.getenv("ProgramFiles(x86)", ""), "Google", "Chrome", "Application", "chrome.exe"),
+        os.path.join(os.getenv("LOCALAPPDATA", ""), "Google", "Chrome", "Application", "chrome.exe"),
+    ]
+    for path in candidates:
+        if path and os.path.exists(path):
+            return path
+    return None
 
 
 def _pick_available_port(host: str, start_port: int, tries: int) -> int:

@@ -25,7 +25,6 @@ poetry run pyinstaller ^
   --paths src ^
   --hidden-import tg_spam.ui_app ^
   --hidden-import tg_spam.paths ^
-  --hidden-import tzdata ^
   --add-data "src/tg_spam/web;tg_spam/web" ^
   src/tg_spam/browser_app.py
 if errorlevel 1 (
