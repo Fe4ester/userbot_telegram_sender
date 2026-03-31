@@ -21,7 +21,7 @@ poetry run pyinstaller ^
   --clean ^
   --name TG-Broadcaster ^
   --console ^
-  --onefile ^
+  --onedir ^
   --paths src ^
   --add-data "src/tg_spam/web;tg_spam/web" ^
   src/tg_spam/browser_app.py
