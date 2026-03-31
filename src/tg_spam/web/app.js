@@ -13,6 +13,67 @@ let uiHeartbeatTimer = null;
 
 const qs = (selector) => document.querySelector(selector);
 
+function notify(title, text, type = "ok", timeout = 3200) {
+  const container = qs("#toast-container");
+  if (!container) return;
+  const node = document.createElement("div");
+  node.className = `toast ${type}`;
+  node.innerHTML = `<div class="title">${escapeHtml(title)}</div><div class="text">${escapeHtml(text)}</div>`;
+  container.appendChild(node);
+  setTimeout(() => node.remove(), timeout);
+}
+
+function notifyError(message) {
+  notify("Ошибка", String(message || "Неизвестная ошибка"), "error", 4200);
+}
+
+function notifySuccess(message) {
+  notify("Готово", String(message || "Операция выполнена"), "ok", 2600);
+}
+
+function showModal({ title, text, okText = "ОК", cancelText = "Отмена", hideCancel = false }) {
+  return new Promise((resolve) => {
+    const modal = qs("#app-modal");
+    const titleNode = qs("#app-modal-title");
+    const textNode = qs("#app-modal-text");
+    const okBtn = qs("#app-modal-ok");
+    const cancelBtn = qs("#app-modal-cancel");
+    if (!modal || !titleNode || !textNode || !okBtn || !cancelBtn) {
+      resolve(false);
+      return;
+    }
+
+    titleNode.textContent = title;
+    textNode.textContent = text;
+    okBtn.textContent = okText;
+    cancelBtn.textContent = cancelText;
+    cancelBtn.style.display = hideCancel ? "none" : "";
+    modal.classList.remove("hidden");
+
+    const cleanup = () => {
+      modal.classList.add("hidden");
+      okBtn.removeEventListener("click", onOk);
+      cancelBtn.removeEventListener("click", onCancel);
+      modal.removeEventListener("click", onBackdrop);
+    };
+    const onOk = () => {
+      cleanup();
+      resolve(true);
+    };
+    const onCancel = () => {
+      cleanup();
+      resolve(false);
+    };
+    const onBackdrop = (event) => {
+      if (event.target === modal) onCancel();
+    };
+
+    okBtn.addEventListener("click", onOk);
+    cancelBtn.addEventListener("click", onCancel);
+    modal.addEventListener("click", onBackdrop);
+  });
+}
+
 function bindTabs() {
   const tabs = document.querySelectorAll(".tab");
   const panels = document.querySelectorAll(".panel");
@@ -160,9 +221,18 @@ function addAccount() {
   loadActiveAccountCampaign();
 }
 
-function removeActiveAccount() {
+async function removeActiveAccount() {
   if (state.accounts.length <= 1) {
-    alert("Нужно оставить минимум один аккаунт.");
+    notifyError("Нужно оставить минимум один аккаунт.");
+    return;
+  }
+  const account = getActiveAccount();
+  const ok = await showModal({
+    title: "Удаление аккаунта",
+    text: `Удалить аккаунт \"${account?.name || account?.session || "без имени"}\" со всеми его группами и текстом?`,
+    okText: "Удалить",
+  });
+  if (!ok) {
     return;
   }
   state.accounts = state.accounts.filter((item) => item.id !== state.activeAccountId);
@@ -567,23 +637,25 @@ function setupEvents() {
     try {
       await saveSettings();
       await refreshState();
-      alert("Настройки сохранены.");
+      notifySuccess("Настройки сохранены.");
     } catch (error) {
-      alert(error.message);
+      notifyError(error.message);
     }
   });
   qs("#btn-start").addEventListener("click", async () => {
     try {
       await startBroadcast();
+      notifySuccess("Рассылка запущена.");
     } catch (error) {
-      alert(error.message);
+      notifyError(error.message);
     }
   });
   qs("#btn-stop").addEventListener("click", async () => {
     try {
       await stopBroadcast();
+      notifySuccess("Рассылка остановлена.");
     } catch (error) {
-      alert(error.message);
+      notifyError(error.message);
     }
   });
 
@@ -596,11 +668,11 @@ function setupEvents() {
   qs("#account-chats-prev").addEventListener("click", () => loadAccountChats(state.accountChatsPage.offset - state.accountChatsPage.limit));
   qs("#account-chats-next").addEventListener("click", () => loadAccountChats(state.accountChatsPage.offset + state.accountChatsPage.limit));
 
-  qs("#auth-send-code").addEventListener("click", () => authSendCode().catch((e) => alert(e.message)));
-  qs("#auth-verify-code").addEventListener("click", () => authVerifyCode().catch((e) => alert(e.message)));
-  qs("#auth-verify-password").addEventListener("click", () => authVerifyPassword().catch((e) => alert(e.message)));
-  qs("#auth-check-status").addEventListener("click", () => authCheckStatus().catch((e) => alert(e.message)));
-  qs("#status-check").addEventListener("click", () => checkStatusPage().catch((e) => alert(e.message)));
+  qs("#auth-send-code").addEventListener("click", () => authSendCode().catch((e) => notifyError(e.message)));
+  qs("#auth-verify-code").addEventListener("click", () => authVerifyCode().catch((e) => notifyError(e.message)));
+  qs("#auth-verify-password").addEventListener("click", () => authVerifyPassword().catch((e) => notifyError(e.message)));
+  qs("#auth-check-status").addEventListener("click", () => authCheckStatus().catch((e) => notifyError(e.message)));
+  qs("#status-check").addEventListener("click", () => checkStatusPage().catch((e) => notifyError(e.message)));
 }
 
 async function init() {

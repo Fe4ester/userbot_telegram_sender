@@ -112,7 +112,7 @@ build-windows.bat
 
 Результат: `dist\TG-Broadcaster\TG-Broadcaster.exe`.
 
-Windows-сборка использует локальный launcher без `pywebview/pythonnet`: сервер стартует внутри `exe`, UI открывается в отдельном app-окне (Edge/Chrome, режим `--app`).
+Windows-сборка использует локальный launcher без `pywebview/pythonnet`: сервер стартует внутри `exe`, UI открывается в отдельном app-окне (Edge/Chrome, режим `--app`), с кастомной иконкой приложения.
 Запуск: двойной клик по `dist\TG-Broadcaster\TG-Broadcaster.exe`.
 
 Если не стартует:

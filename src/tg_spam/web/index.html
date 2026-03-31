@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1d9bf0" />
     <title>TG Рассылка</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -10,6 +11,9 @@
       href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
+    <link rel="manifest" href="/assets/manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/icons/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/assets/icons/tg-broadcaster-192.png" />
     <link rel="stylesheet" href="/assets/styles.css" />
   </head>
   <body>
@@ -169,6 +173,17 @@
         <div id="status-grid" class="status-grid"></div>
       </section>
     </main>
+    <div id="toast-container" class="toast-container"></div>
+    <div id="app-modal" class="app-modal hidden" role="dialog" aria-modal="true">
+      <div class="app-modal-card">
+        <div class="app-modal-title" id="app-modal-title">Уведомление</div>
+        <div class="app-modal-text" id="app-modal-text"></div>
+        <div class="app-modal-actions">
+          <button id="app-modal-cancel" class="btn btn-ghost">Отмена</button>
+          <button id="app-modal-ok" class="btn btn-primary">ОК</button>
+        </div>
+      </div>
+    </div>
     <script src="/assets/app.js"></script>
   </body>
 </html>

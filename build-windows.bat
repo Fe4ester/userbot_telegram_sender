@@ -20,6 +20,7 @@ poetry run pyinstaller ^
   --noconfirm ^
   --clean ^
   --name TG-Broadcaster ^
+  --icon assets/icons/tg-broadcaster.ico ^
   --windowed ^
   --onedir ^
   --paths src ^
