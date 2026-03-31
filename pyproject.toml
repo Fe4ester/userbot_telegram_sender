@@ -1,0 +1,33 @@
+[project]
+name = "tg-spam"
+version = "0.1.0"
+description = "Telegram userbot broadcaster with YAML configuration"
+authors = [
+    {name = "lian",email = "xdxdxd4305@gmail.com"}
+]
+readme = "README.md"
+requires-python = "^3.12"
+dependencies = [
+    "fastapi>=0.116.1,<0.117.0",
+    "pywebview>=5.4,<6.0",
+    "pyyaml>=6.0.2,<7.0.0",
+    "telethon>=1.41.2,<2.0.0",
+    "uvicorn>=0.35.0,<0.36.0",
+]
+
+[project.scripts]
+tg-broadcast = "tg_spam.cli:main"
+tg-ui = "tg_spam.ui_app:main"
+tg-ui-desktop = "tg_spam.desktop:main"
+
+[tool.poetry]
+packages = [
+    { include = "tg_spam", from = "src" },
+]
+
+[tool.poetry.group.dev.dependencies]
+pyinstaller = { version = "^6.19.0", python = ">=3.12,<3.15" }
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

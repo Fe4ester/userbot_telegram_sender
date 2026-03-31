@@ -1,0 +1,31 @@
+message: |
+  Privet.
+  Eto testovaya rassylka cherez userbota.
+parse_mode: html
+
+targets:
+  - id: -1001234567890
+    enabled: true
+    interval_seconds: 60
+    initial_delay_seconds: 0
+    repeat: 0
+
+  - link: https://t.me/example_group
+    enabled: true
+    interval_seconds: 120
+    initial_delay_seconds: 10
+    repeat: 2
+
+  - ref: my_private_group
+    enabled: false
+    repeat: 1
+dispatch:
+  default_interval_seconds: 0
+  default_repeat: 0
+  retry_attempts: 2
+  retry_delay_seconds: 3
+  continue_on_error: true
+
+logging:
+  level: INFO
+  file: logs/broadcast.log

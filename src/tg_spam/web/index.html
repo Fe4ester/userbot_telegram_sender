@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TG Рассылка</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <div class="bg"></div>
+    <main class="app-shell">
+      <aside class="sidebar">
+        <h1>TG Рассылка</h1>
+        <p class="subtitle">Локальная панель управления</p>
+        <nav class="tabs">
+          <button class="tab active" data-tab="settings">Настройки</button>
+          <button class="tab" data-tab="userbot">Юзербот</button>
+          <button class="tab" data-tab="chats">Группы</button>
+          <button class="tab" data-tab="logs">Логи</button>
+          <button class="tab" data-tab="status">Статус</button>
+        </nav>
+        <div class="status-box">
+          <div id="runtime-state">Статус: ожидание</div>
+          <div id="runtime-meta"></div>
+        </div>
+        <div class="actions">
+          <button id="btn-save" class="btn btn-ghost">Сохранить</button>
+          <button id="btn-start" class="btn btn-primary">Запустить</button>
+          <button id="btn-stop" class="btn btn-danger">Остановить</button>
+        </div>
+      </aside>
+
+      <section class="panel active" data-panel="settings">
+        <h2>Сообщение для аккаунта</h2>
+        <p class="panel-hint">Текст и группы привязаны к выбранному аккаунту. Переключи аккаунт во вкладке "Юзербот", чтобы редактировать его раздел.</p>
+        <div class="grid two">
+          <label>Режим форматирования
+            <select id="parse-mode">
+              <option value="html">HTML</option>
+              <option value="md">Markdown</option>
+            </select>
+          </label>
+          <label>Подсказка
+            <input id="format-help" type="text" value="HTML: <b>жирный</b>, <i>курсив</i>, <a href='https://...'>ссылка</a>, <tg-emoji emoji-id='...'>🔥</tg-emoji>" readonly />
+          </label>
+        </div>
+        <div class="editor-toolbar">
+          <button class="btn btn-ghost fmt-btn" data-wrap="<b>|</b>">B</button>
+          <button class="btn btn-ghost fmt-btn" data-wrap="<i>|</i>">I</button>
+          <button class="btn btn-ghost fmt-btn" data-wrap="<u>|</u>">U</button>
+          <button class="btn btn-ghost fmt-btn" data-wrap="<code>|</code>">Code</button>
+          <button class="btn btn-ghost fmt-btn" data-wrap="<a href='https://'>|</a>">Link</button>
+          <button class="btn btn-ghost" id="insert-premium-emoji">Premium emoji</button>
+        </div>
+        <div class="editor-grid">
+          <label>Сырой текст
+            <textarea id="message" rows="12"></textarea>
+          </label>
+          <div>
+            <div class="preview-title">Предпросмотр</div>
+            <div id="message-preview" class="message-preview"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="userbot">
+        <h2>Юзербот и авторизация</h2>
+        <div class="account-bar">
+          <label>Аккаунт
+            <select id="account-select"></select>
+          </label>
+          <button id="account-add" class="btn btn-ghost">+ Аккаунт</button>
+          <button id="account-remove" class="btn btn-danger">Удалить</button>
+        </div>
+        <div class="grid">
+          <label>Название аккаунта
+            <input id="account-name" type="text" />
+          </label>
+          <label>API ID
+            <input id="api-id" type="text" />
+          </label>
+          <label>API Hash
+            <input id="api-hash" type="password" />
+          </label>
+          <label>Имя сессии
+            <input id="session" type="text" />
+          </label>
+        </div>
+        <div class="auth-card">
+          <h3>Создание сессии</h3>
+          <div class="auth-row">
+            <input id="auth-phone" type="text" placeholder="+79991234567" />
+            <button id="auth-send-code" class="btn btn-primary">Получить код</button>
+          </div>
+          <div class="auth-row">
+            <input id="auth-code" type="text" placeholder="Код из Telegram" />
+            <button id="auth-verify-code" class="btn btn-ghost">Подтвердить код</button>
+          </div>
+          <div class="auth-row">
+            <input id="auth-password" type="password" placeholder="Пароль 2FA (если включен)" />
+            <button id="auth-verify-password" class="btn btn-ghost">Подтвердить 2FA</button>
+          </div>
+          <div class="auth-row">
+            <button id="auth-check-status" class="btn btn-ghost">Проверить вход</button>
+            <span id="auth-status">Статус авторизации: неизвестно</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="chats">
+        <div class="row">
+          <h2>Группы рассылки</h2>
+          <button id="add-chat" class="btn btn-primary">Добавить вручную</button>
+        </div>
+        <div id="chat-list" class="chat-list"></div>
+        <div class="pager" id="targets-pager">
+          <button id="targets-prev" class="btn btn-ghost">Назад</button>
+          <span id="targets-page-info">1 / 1</span>
+          <button id="targets-next" class="btn btn-ghost">Вперед</button>
+        </div>
+        <div class="available-chats">
+          <div class="row">
+            <h3>Группы из аккаунта Telegram</h3>
+            <button id="load-account-chats" class="btn btn-ghost">Обновить список</button>
+          </div>
+          <div id="account-chat-list" class="account-chat-list"></div>
+          <div class="pager">
+            <button id="account-chats-prev" class="btn btn-ghost">Назад</button>
+            <span id="account-chats-page-info">1 / 1</span>
+            <button id="account-chats-next" class="btn btn-ghost">Вперед</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="logs">
+        <div class="row">
+          <h2>Логи</h2>
+          <label class="inline">
+            Уровень
+            <select id="log-filter-level">
+              <option value="">ВСЕ</option>
+              <option value="DEBUG">DEBUG</option>
+              <option value="INFO">INFO</option>
+              <option value="WARNING">WARNING</option>
+              <option value="ERROR">ERROR</option>
+            </select>
+          </label>
+          <button id="refresh-logs" class="btn btn-ghost">Обновить</button>
+        </div>
+        <pre id="log-output"></pre>
+        <div class="pager">
+          <button id="logs-prev" class="btn btn-ghost">Назад</button>
+          <span id="logs-page-info">1 / 1</span>
+          <button id="logs-next" class="btn btn-ghost">Вперед</button>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="status">
+        <div class="row">
+          <h2>Статус аккаунта</h2>
+          <button id="status-check" class="btn btn-primary">Проверить статус</button>
+        </div>
+        <div id="status-grid" class="status-grid"></div>
+      </section>
+    </main>
+    <script src="/assets/app.js"></script>
+  </body>
+</html>
