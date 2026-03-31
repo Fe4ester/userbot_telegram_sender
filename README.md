@@ -110,14 +110,14 @@ poetry install --with dev
 build-windows.bat
 ```
 
-Результат: `dist\TG-Broadcaster\TG-Broadcaster.exe`.
+Результат: `dist\TG-Broadcaster.exe` (один файл).
 
 Windows-сборка использует локальный launcher без `pywebview/pythonnet`: сервер стартует внутри `exe`, UI открывается в отдельном app-окне (Edge/Chrome, режим `--app`), с кастомной иконкой приложения.
-Запуск: двойной клик по `dist\TG-Broadcaster\TG-Broadcaster.exe`.
+Запуск: двойной клик по `dist\TG-Broadcaster.exe`.
 
 Если не стартует:
 
 - проверь `%APPDATA%\TG Broadcaster\crash.log`
 - проверь `%APPDATA%\TG Broadcaster\launcher.log`
 - собери debug-версию: `build-windows-debug.bat`
-- запусти `dist\TG-Broadcaster-Debug\TG-Broadcaster-Debug.exe` и посмотри текст ошибки в окне
+- запусти `dist\TG-Broadcaster-Debug.exe` и посмотри текст ошибки в окне

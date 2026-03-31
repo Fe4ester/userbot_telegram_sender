@@ -22,7 +22,7 @@ poetry run pyinstaller ^
   --name TG-Broadcaster ^
   --icon assets/icons/tg-broadcaster.ico ^
   --windowed ^
-  --onedir ^
+  --onefile ^
   --paths src ^
   --hidden-import tg_spam.ui_app ^
   --hidden-import tg_spam.paths ^
@@ -34,6 +34,6 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo [OK] Build completed. Run dist\TG-Broadcaster\TG-Broadcaster.exe
+echo [OK] Build completed. Run dist\TG-Broadcaster.exe
 pause
 endlocal
