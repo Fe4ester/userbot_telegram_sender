@@ -19,8 +19,8 @@ if errorlevel 1 (
 poetry run pyinstaller ^
   --noconfirm ^
   --clean ^
-  --name TG-Broadcaster ^
-  --windowed ^
+  --name TG-Broadcaster-Debug ^
+  --console ^
   --onedir ^
   --paths src ^
   --hidden-import tg_spam.ui_app ^
@@ -34,6 +34,6 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo [OK] Build completed. Run dist\TG-Broadcaster\TG-Broadcaster.exe
+echo [OK] Build completed. Run dist\TG-Broadcaster-Debug\TG-Broadcaster-Debug.exe
 pause
 endlocal
