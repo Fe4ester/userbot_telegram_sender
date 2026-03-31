@@ -9,7 +9,7 @@ readme = "README.md"
 requires-python = "^3.12"
 dependencies = [
     "fastapi>=0.116.1,<0.117.0",
-    "pywebview>=5.4,<6.0",
+    "pywebview>=5.4,<6.0; sys_platform == 'darwin'",
     "pyyaml>=6.0.2,<7.0.0",
     "telethon>=1.41.2,<2.0.0",
     "uvicorn>=0.35.0,<0.36.0",
@@ -19,6 +19,7 @@ dependencies = [
 tg-broadcast = "tg_spam.cli:main"
 tg-ui = "tg_spam.ui_app:main"
 tg-ui-desktop = "tg_spam.desktop:main"
+tg-ui-browser = "tg_spam.browser_app:main"
 
 [tool.poetry]
 packages = [

@@ -105,7 +105,11 @@ poetry run tg-broadcast --config broadcast.yml
 Запусти на Windows:
 
 ```bat
+poetry lock
+poetry install --with dev
 build-windows.bat
 ```
 
 Результат: `dist\TG-Broadcaster.exe`.
+
+Windows-сборка использует браузерный launcher (без `pywebview/pythonnet`), поэтому сборка стабильнее.

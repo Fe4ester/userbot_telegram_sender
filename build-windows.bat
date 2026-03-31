@@ -20,12 +20,11 @@ poetry run pyinstaller ^
   --noconfirm ^
   --clean ^
   --name TG-Broadcaster ^
-  --windowed ^
+  --console ^
   --onefile ^
   --paths src ^
-  --collect-submodules webview ^
   --add-data "src/tg_spam/web;tg_spam/web" ^
-  src/tg_spam/desktop.py
+  src/tg_spam/browser_app.py
 if errorlevel 1 (
   echo [ERROR] Build failed.
   pause
