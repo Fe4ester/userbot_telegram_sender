@@ -15,6 +15,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 APP_NAME = "TG Broadcaster"
+UI_HEARTBEAT_FILE = "ui.heartbeat"
 
 
 def main() -> None:
@@ -33,6 +34,7 @@ def main() -> None:
 
         port = _pick_available_port(args.host, args.port, tries=40)
         base_url = f"http://{args.host}:{port}"
+        _reset_ui_heartbeat(app_dir)
         config = uvicorn.Config(
             app=fastapi_app,
             host=args.host,
@@ -46,7 +48,12 @@ def main() -> None:
         if not args.no_open:
             threading.Thread(
                 target=_open_client_window_delayed,
-                args=(base_url, server, app_dir),
+                args=(base_url, app_dir),
+                daemon=True,
+            ).start()
+            threading.Thread(
+                target=_monitor_ui_heartbeat,
+                args=(server, app_dir),
                 daemon=True,
             ).start()
         _write_launcher_log(app_dir, f"starting server on {base_url}")
@@ -57,14 +64,12 @@ def main() -> None:
         sys.exit(1)
 
 
-def _open_client_window_delayed(url: str, server: object, app_dir: Path) -> None:
+def _open_client_window_delayed(url: str, app_dir: Path) -> None:
     time.sleep(1.0)
     app_process = _start_app_window(url, app_dir)
     if app_process is not None:
         app_process.wait()
-        # Uvicorn Server has this runtime flag; use guarded setattr for typing/compatibility.
-        setattr(server, "should_exit", True)
-        _write_launcher_log(app_dir, "app window closed; stopping local server")
+        _write_launcher_log(app_dir, f"app process exited with code {app_process.returncode}")
 
 
 def _start_app_window(url: str, app_dir: Path) -> subprocess.Popen[str] | None:
@@ -98,6 +103,37 @@ def _detect_app_browser() -> str | None:
     return None
 
 
+def _monitor_ui_heartbeat(
+    server: object,
+    app_dir: Path,
+    first_heartbeat_timeout: float = 45.0,
+    stale_timeout: float = 15.0,
+) -> None:
+    start_ts = time.time()
+    heartbeat_path = app_dir / UI_HEARTBEAT_FILE
+    while True:
+        if bool(getattr(server, "should_exit", False)):
+            return
+        now = time.time()
+        if heartbeat_path.exists():
+            age = now - heartbeat_path.stat().st_mtime
+            if age > stale_timeout:
+                _write_launcher_log(
+                    app_dir,
+                    f"ui heartbeat stale ({age:.1f}s) - stopping local server",
+                )
+                setattr(server, "should_exit", True)
+                return
+        elif now - start_ts > first_heartbeat_timeout:
+            _write_launcher_log(
+                app_dir,
+                "ui heartbeat not received in time - stopping local server",
+            )
+            setattr(server, "should_exit", True)
+            return
+        time.sleep(2.0)
+
+
 def _pick_available_port(host: str, start_port: int, tries: int) -> int:
     for port in range(start_port, start_port + tries):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -113,6 +149,15 @@ def _resolve_app_dir() -> Path:
         if appdata:
             return Path(appdata) / APP_NAME
     return Path.home() / ".tg_broadcaster"
+
+
+def _reset_ui_heartbeat(app_dir: Path) -> None:
+    heartbeat_path = app_dir / UI_HEARTBEAT_FILE
+    try:
+        if heartbeat_path.exists():
+            heartbeat_path.unlink()
+    except Exception:
+        pass
 
 
 def _write_crash_log(app_dir: Path, exc: Exception) -> None:

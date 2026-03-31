@@ -9,6 +9,7 @@ const state = {
   accountChatsPage: { offset: 0, limit: 12, total: 0 },
   logsPage: { offset: 0, limit: 300, total: 0 },
 };
+let uiHeartbeatTimer = null;
 
 const qs = (selector) => document.querySelector(selector);
 
@@ -608,6 +609,7 @@ async function init() {
   setupFormattingTools();
   await refreshState();
   await refreshLogs(0);
+  startUiHeartbeat();
   renderAccountChats();
   setInterval(async () => {
     try {
@@ -618,3 +620,20 @@ async function init() {
 }
 
 init();
+
+function startUiHeartbeat() {
+  if (uiHeartbeatTimer) clearInterval(uiHeartbeatTimer);
+  sendUiHeartbeat().catch(() => {});
+  uiHeartbeatTimer = setInterval(() => {
+    sendUiHeartbeat().catch(() => {});
+  }, 2000);
+}
+
+async function sendUiHeartbeat() {
+  await fetch("/api/runtime/heartbeat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: "{}",
+    keepalive: true,
+  });
+}

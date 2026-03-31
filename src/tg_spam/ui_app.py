@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -12,6 +13,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from tg_spam.log_store import InMemoryLogStore
+from tg_spam.paths import APP_DIR
 from tg_spam.service import BroadcastService
 from tg_spam.settings_store import (
     DEFAULT_SETTINGS_PATH,
@@ -26,6 +28,7 @@ from tg_spam.tg_auth import TelegramAuthService
 
 
 WEB_DIR = Path(__file__).parent / "web"
+UI_HEARTBEAT_PATH = APP_DIR / "ui.heartbeat"
 
 
 class AppState:
@@ -108,6 +111,12 @@ async def stop_broadcast() -> dict[str, Any]:
 @app.get("/api/ping")
 async def ping() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.post("/api/runtime/heartbeat")
+async def runtime_heartbeat() -> dict[str, bool]:
+    await asyncio.to_thread(_touch_ui_heartbeat)
+    return {"ok": True}
 
 
 @app.post("/api/auth/send-code")
@@ -263,3 +272,8 @@ async def wait_until_ready(base_url: str, timeout: float = 10.0) -> None:
         except Exception:
             await asyncio.sleep(0.2)
     raise RuntimeError("UI server did not start in time.")
+
+
+def _touch_ui_heartbeat() -> None:
+    APP_DIR.mkdir(parents=True, exist_ok=True)
+    UI_HEARTBEAT_PATH.write_text(datetime.now(tz=UTC).isoformat(), encoding="utf-8")
