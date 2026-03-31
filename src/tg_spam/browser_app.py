@@ -40,6 +40,7 @@ def main() -> None:
             reload=False,
             log_level="info",
             access_log=False,
+            log_config=None,
         )
         server = uvicorn.Server(config)
         if not args.no_open:
